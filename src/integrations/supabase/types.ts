@@ -9,7 +9,213 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      event_djs: {
+        Row: {
+          created_at: string
+          dj_id: string
+          end_time: string
+          event_id: string
+          id: string
+          start_time: string
+        }
+        Insert: {
+          created_at?: string
+          dj_id: string
+          end_time: string
+          event_id: string
+          id?: string
+          start_time: string
+        }
+        Update: {
+          created_at?: string
+          dj_id?: string
+          end_time?: string
+          event_id?: string
+          id?: string
+          start_time?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_djs_dj_id_fkey"
+            columns: ["dj_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_djs_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      events: {
+        Row: {
+          created_at: string
+          date: string
+          end_time: string
+          id: string
+          minimum_tip: number
+          name: string
+          start_time: string
+          updated_at: string
+          venue_id: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          end_time: string
+          id?: string
+          minimum_tip?: number
+          name: string
+          start_time: string
+          updated_at?: string
+          venue_id: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          end_time?: string
+          id?: string
+          minimum_tip?: number
+          name?: string
+          start_time?: string
+          updated_at?: string
+          venue_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "events_venue_id_fkey"
+            columns: ["venue_id"]
+            isOneToOne: false
+            referencedRelation: "venues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          id: string
+          name: string | null
+          phone_number: string | null
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at: string
+          username: string | null
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          name?: string | null
+          phone_number?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+          username?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string | null
+          phone_number?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+          username?: string | null
+        }
+        Relationships: []
+      }
+      suggestions: {
+        Row: {
+          client_id: string | null
+          content: string
+          created_at: string
+          dj_id: string
+          event_id: string
+          id: string
+          payment_id: string | null
+          payment_status: string
+          status: string
+          tip_amount: number
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          client_id?: string | null
+          content: string
+          created_at?: string
+          dj_id: string
+          event_id: string
+          id?: string
+          payment_id?: string | null
+          payment_status?: string
+          status?: string
+          tip_amount: number
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string | null
+          content?: string
+          created_at?: string
+          dj_id?: string
+          event_id?: string
+          id?: string
+          payment_id?: string | null
+          payment_status?: string
+          status?: string
+          tip_amount?: number
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "suggestions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "suggestions_dj_id_fkey"
+            columns: ["dj_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "suggestions_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      venues: {
+        Row: {
+          address: string
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          address: string
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -18,7 +224,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      user_role: "admin" | "dj" | "client"
     }
     CompositeTypes: {
       [_ in never]: never

@@ -10,12 +10,16 @@ const Navbar = () => {
             Tipy
           </Link>
           <div className="flex gap-4">
-            <Button variant="ghost" className="text-white hover:text-primary-light">
-              <Link to="/contact">Contáctenos</Link>
-            </Button>
-            <Button className="bg-secondary hover:bg-primary-light text-white">
-              <Link to="/login">Iniciar sesión</Link>
-            </Button>
+            <Link to="/contact">
+              <Button variant="ghost" className="text-white hover:text-primary-light">
+                Contáctenos
+              </Button>
+            </Link>
+            <Link to="/login">
+              <Button className="bg-secondary hover:bg-primary-light text-white">
+                Iniciar sesión
+              </Button>
+            </Link>
           </div>
         </div>
       </div>
