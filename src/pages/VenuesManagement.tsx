@@ -30,6 +30,25 @@ const VenuesManagement = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  const fetchVenues = async () => {
+    const { data, error } = await supabase
+      .from('venues')
+      .select('*')
+      .order('name');
+
+    if (error) {
+      console.error('Error fetching venues:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "No se pudieron cargar los locales.",
+      });
+      return;
+    }
+
+    setVenues(data);
+  };
+
   useEffect(() => {
     const checkAdminAccess = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -49,24 +68,6 @@ const VenuesManagement = () => {
       }
     };
 
-    const fetchVenues = async () => {
-      const { data, error } = await supabase
-        .from('venues')
-        .select('*')
-        .order('name');
-
-      if (error) {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "No se pudieron cargar los locales.",
-        });
-        return;
-      }
-
-      setVenues(data);
-    };
-
     checkAdminAccess();
     fetchVenues();
   }, [navigate, toast]);
@@ -78,6 +79,7 @@ const VenuesManagement = () => {
       .eq('id', id);
 
     if (error) {
+      console.error('Error deleting venue:', error);
       toast({
         variant: "destructive",
         title: "Error",
@@ -109,6 +111,7 @@ const VenuesManagement = () => {
       .select();
 
     if (error) {
+      console.error('Error creating venue:', error);
       toast({
         variant: "destructive",
         title: "Error",
@@ -117,13 +120,16 @@ const VenuesManagement = () => {
       return;
     }
 
-    setVenues([...venues, data[0]]);
-    setNewVenue({ name: '', address: '' });
-    setIsDialogOpen(false);
-    toast({
-      title: "Local creado",
-      description: "El local ha sido creado exitosamente.",
-    });
+    if (data && data[0]) {
+      setVenues([...venues, data[0]]);
+      setNewVenue({ name: '', address: '' });
+      setIsDialogOpen(false);
+      toast({
+        title: "Local creado",
+        description: "El local ha sido creado exitosamente.",
+      });
+      await fetchVenues(); // Refresh the venues list
+    }
   };
 
   return (
