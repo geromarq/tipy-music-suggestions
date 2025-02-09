@@ -46,7 +46,7 @@ const VenuesManagement = () => {
       return;
     }
 
-    setVenues(data);
+    setVenues(data || []);
   };
 
   useEffect(() => {
@@ -70,7 +70,7 @@ const VenuesManagement = () => {
 
     checkAdminAccess();
     fetchVenues();
-  }, [navigate, toast]);
+  }, [navigate]);
 
   const handleDelete = async (id: string) => {
     const { error } = await supabase
@@ -88,7 +88,7 @@ const VenuesManagement = () => {
       return;
     }
 
-    setVenues(venues.filter(venue => venue.id !== id));
+    await fetchVenues();
     toast({
       title: "Local eliminado",
       description: "El local ha sido eliminado exitosamente.",
@@ -105,10 +105,9 @@ const VenuesManagement = () => {
       return;
     }
 
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('venues')
-      .insert([newVenue])
-      .select();
+      .insert([newVenue]);
 
     if (error) {
       console.error('Error creating venue:', error);
@@ -120,16 +119,13 @@ const VenuesManagement = () => {
       return;
     }
 
-    if (data && data[0]) {
-      setVenues([...venues, data[0]]);
-      setNewVenue({ name: '', address: '' });
-      setIsDialogOpen(false);
-      toast({
-        title: "Local creado",
-        description: "El local ha sido creado exitosamente.",
-      });
-      await fetchVenues(); // Refresh the venues list
-    }
+    await fetchVenues();
+    setNewVenue({ name: '', address: '' });
+    setIsDialogOpen(false);
+    toast({
+      title: "Local creado",
+      description: "El local ha sido creado exitosamente.",
+    });
   };
 
   return (
