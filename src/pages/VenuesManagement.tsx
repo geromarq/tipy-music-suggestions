@@ -3,9 +3,18 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, Home } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/components/ui/use-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface Venue {
   id: string;
@@ -16,6 +25,8 @@ interface Venue {
 
 const VenuesManagement = () => {
   const [venues, setVenues] = useState<Venue[]>([]);
+  const [newVenue, setNewVenue] = useState({ name: '', address: '' });
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -82,17 +93,94 @@ const VenuesManagement = () => {
     });
   };
 
+  const handleCreateVenue = async () => {
+    if (!newVenue.name || !newVenue.address) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Por favor complete todos los campos.",
+      });
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from('venues')
+      .insert([newVenue])
+      .select();
+
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "No se pudo crear el local.",
+      });
+      return;
+    }
+
+    setVenues([...venues, data[0]]);
+    setNewVenue({ name: '', address: '' });
+    setIsDialogOpen(false);
+    toast({
+      title: "Local creado",
+      description: "El local ha sido creado exitosamente.",
+    });
+  };
+
   return (
     <div className="min-h-screen bg-[#121212] pt-20">
       <div className="container mx-auto p-6">
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col gap-4">
           <h1 className="text-4xl font-bold text-white">Gestión de Locales</h1>
           <Button
-            onClick={() => navigate('/admin/venues/new')}
-            className="bg-[#333333] text-white hover:bg-[#444444]"
+            onClick={() => navigate('/admin')}
+            className="w-fit bg-[#333333] text-white hover:bg-[#444444]"
           >
-            Nuevo Local
+            <Home className="h-4 w-4 mr-2" />
+            Home
           </Button>
+        </div>
+
+        <div className="flex justify-end mb-8 mt-4">
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button
+                className="bg-[#333333] text-white hover:bg-[#444444]"
+              >
+                Nuevo Local
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="bg-[#333333] text-white border-[#444444]">
+              <DialogHeader>
+                <DialogTitle className="text-white">Crear Nuevo Local</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="name" className="text-white">Nombre</Label>
+                  <Input
+                    id="name"
+                    value={newVenue.name}
+                    onChange={(e) => setNewVenue({ ...newVenue, name: e.target.value })}
+                    className="bg-[#444444] border-[#555555] text-white"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="address" className="text-white">Dirección</Label>
+                  <Input
+                    id="address"
+                    value={newVenue.address}
+                    onChange={(e) => setNewVenue({ ...newVenue, address: e.target.value })}
+                    className="bg-[#444444] border-[#555555] text-white"
+                  />
+                </div>
+                <Button
+                  onClick={handleCreateVenue}
+                  className="w-full bg-green-600 hover:bg-green-700 text-white"
+                >
+                  Crear Local
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
