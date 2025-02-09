@@ -95,6 +95,33 @@ export type Database = {
           },
         ]
       }
+      payment_settings: {
+        Row: {
+          admin_percentage: number
+          created_at: string
+          dj_percentage: number
+          id: string
+          minimum_tip: number
+          updated_at: string
+        }
+        Insert: {
+          admin_percentage?: number
+          created_at?: string
+          dj_percentage?: number
+          id?: string
+          minimum_tip?: number
+          updated_at?: string
+        }
+        Update: {
+          admin_percentage?: number
+          created_at?: string
+          dj_percentage?: number
+          id?: string
+          minimum_tip?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
