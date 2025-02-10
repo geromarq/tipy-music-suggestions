@@ -68,9 +68,17 @@ const DJManagement = () => {
 
   const handleCreateDJ = async () => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("No authenticated user");
+
       const { data, error } = await supabase
         .from('profiles')
-        .insert([{ ...newDJ, role: 'dj' }])
+        .insert({
+          name: newDJ.name,
+          username: newDJ.username,
+          phone_number: newDJ.phone_number,
+          role: 'dj' as const // Explicitly type as 'dj' literal
+        })
         .select()
         .single();
 
@@ -97,7 +105,11 @@ const DJManagement = () => {
     try {
       const { error } = await supabase
         .from('profiles')
-        .update(editingDJ)
+        .update({
+          name: editingDJ.name,
+          username: editingDJ.username,
+          phone_number: editingDJ.phone_number
+        })
         .eq('id', editingDJ.id);
 
       if (error) throw error;
