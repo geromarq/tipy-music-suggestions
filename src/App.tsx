@@ -6,7 +6,7 @@ import Index from "@/pages/Index";
 import Login from "@/pages/Login";
 import NotFound from "@/pages/NotFound";
 import AdminPanel from "@/pages/AdminPanel";
-import VenuesManagement from "@/pages/VenuesManagement";
+import "./App.css";
 
 function App() {
   return (
@@ -16,7 +16,6 @@ function App() {
         <Route path="/" element={<Index />} />
         <Route path="/login" element={<Login />} />
         <Route path="/admin" element={<AdminPanel />} />
-        <Route path="/admin/venues" element={<VenuesManagement />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       <Toaster />
