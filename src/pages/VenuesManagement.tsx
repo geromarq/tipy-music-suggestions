@@ -30,25 +30,6 @@ const VenuesManagement = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const fetchVenues = async () => {
-    const { data, error } = await supabase
-      .from('venues')
-      .select('*')
-      .order('name');
-
-    if (error) {
-      console.error('Error fetching venues:', error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "No se pudieron cargar los locales.",
-      });
-      return;
-    }
-
-    setVenues(data || []);
-  };
-
   useEffect(() => {
     const checkAdminAccess = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -68,9 +49,27 @@ const VenuesManagement = () => {
       }
     };
 
+    const fetchVenues = async () => {
+      const { data, error } = await supabase
+        .from('venues')
+        .select('*')
+        .order('name');
+
+      if (error) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "No se pudieron cargar los locales.",
+        });
+        return;
+      }
+
+      setVenues(data);
+    };
+
     checkAdminAccess();
     fetchVenues();
-  }, [navigate]);
+  }, [navigate, toast]);
 
   const handleDelete = async (id: string) => {
     const { error } = await supabase
@@ -79,7 +78,6 @@ const VenuesManagement = () => {
       .eq('id', id);
 
     if (error) {
-      console.error('Error deleting venue:', error);
       toast({
         variant: "destructive",
         title: "Error",
@@ -88,7 +86,7 @@ const VenuesManagement = () => {
       return;
     }
 
-    await fetchVenues();
+    setVenues(venues.filter(venue => venue.id !== id));
     toast({
       title: "Local eliminado",
       description: "El local ha sido eliminado exitosamente.",
@@ -105,12 +103,12 @@ const VenuesManagement = () => {
       return;
     }
 
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('venues')
-      .insert([newVenue]);
+      .insert([newVenue])
+      .select();
 
     if (error) {
-      console.error('Error creating venue:', error);
       toast({
         variant: "destructive",
         title: "Error",
@@ -119,7 +117,7 @@ const VenuesManagement = () => {
       return;
     }
 
-    await fetchVenues();
+    setVenues([...venues, data[0]]);
     setNewVenue({ name: '', address: '' });
     setIsDialogOpen(false);
     toast({
