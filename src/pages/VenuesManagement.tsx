@@ -3,9 +3,9 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Pencil, Trash2, Home } from "lucide-react";
+import { Home, Plus, Pencil, Trash2 } from "lucide-react";
 import { format } from "date-fns";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import {
   Dialog,
   DialogContent,
@@ -26,9 +26,28 @@ interface Venue {
 const VenuesManagement = () => {
   const [venues, setVenues] = useState<Venue[]>([]);
   const [newVenue, setNewVenue] = useState({ name: '', address: '' });
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  const fetchVenues = async () => {
+    const { data, error } = await supabase
+      .from('venues')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching venues:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "No se pudieron cargar los locales.",
+      });
+      return;
+    }
+
+    setVenues(data || []);
+  };
 
   useEffect(() => {
     const checkAdminAccess = async () => {
@@ -49,51 +68,11 @@ const VenuesManagement = () => {
       }
     };
 
-    const fetchVenues = async () => {
-      const { data, error } = await supabase
-        .from('venues')
-        .select('*')
-        .order('name');
-
-      if (error) {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "No se pudieron cargar los locales.",
-        });
-        return;
-      }
-
-      setVenues(data);
-    };
-
     checkAdminAccess();
     fetchVenues();
-  }, [navigate, toast]);
+  }, [navigate]);
 
-  const handleDelete = async (id: string) => {
-    const { error } = await supabase
-      .from('venues')
-      .delete()
-      .eq('id', id);
-
-    if (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "No se pudo eliminar el local.",
-      });
-      return;
-    }
-
-    setVenues(venues.filter(venue => venue.id !== id));
-    toast({
-      title: "Local eliminado",
-      description: "El local ha sido eliminado exitosamente.",
-    });
-  };
-
-  const handleCreateVenue = async () => {
+  const handleCreate = async () => {
     if (!newVenue.name || !newVenue.address) {
       toast({
         variant: "destructive",
@@ -103,12 +82,12 @@ const VenuesManagement = () => {
       return;
     }
 
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('venues')
-      .insert([newVenue])
-      .select();
+      .insert([newVenue]);
 
     if (error) {
+      console.error('Error creating venue:', error);
       toast({
         variant: "destructive",
         title: "Error",
@@ -117,13 +96,36 @@ const VenuesManagement = () => {
       return;
     }
 
-    setVenues([...venues, data[0]]);
+    setIsOpen(false);
     setNewVenue({ name: '', address: '' });
-    setIsDialogOpen(false);
     toast({
       title: "Local creado",
       description: "El local ha sido creado exitosamente.",
     });
+    fetchVenues();
+  };
+
+  const handleDelete = async (id: string) => {
+    const { error } = await supabase
+      .from('venues')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error deleting venue:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "No se pudo eliminar el local.",
+      });
+      return;
+    }
+
+    toast({
+      title: "Local eliminado",
+      description: "El local ha sido eliminado exitosamente.",
+    });
+    fetchVenues();
   };
 
   return (
@@ -141,11 +143,10 @@ const VenuesManagement = () => {
         </div>
 
         <div className="flex justify-end mb-8 mt-4">
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger asChild>
-              <Button
-                className="bg-[#333333] text-white hover:bg-[#444444]"
-              >
+              <Button className="bg-[#333333] text-white hover:bg-[#444444]">
+                <Plus className="h-4 w-4 mr-2" />
                 Nuevo Local
               </Button>
             </DialogTrigger>
@@ -173,7 +174,7 @@ const VenuesManagement = () => {
                   />
                 </div>
                 <Button
-                  onClick={handleCreateVenue}
+                  onClick={handleCreate}
                   className="w-full bg-green-600 hover:bg-green-700 text-white"
                 >
                   Crear Local
