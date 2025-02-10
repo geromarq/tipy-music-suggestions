@@ -68,16 +68,27 @@ const DJManagement = () => {
 
   const handleCreateDJ = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("No authenticated user");
+      // Generate a random password for the DJ (they can reset it later)
+      const tempPassword = Math.random().toString(36).slice(-8);
+      
+      // First create an auth user account
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: `${newDJ.username}@yourdomain.com`, // Using username as email for now
+        password: tempPassword,
+      });
 
+      if (authError) throw authError;
+      if (!authData.user) throw new Error("Failed to create user account");
+
+      // Now create the profile with the auth user's id
       const { data, error } = await supabase
         .from('profiles')
         .insert({
+          id: authData.user.id,
           name: newDJ.name,
           username: newDJ.username,
           phone_number: newDJ.phone_number,
-          role: 'dj' as const // Explicitly type as 'dj' literal
+          role: 'dj' as const
         })
         .select()
         .single();
@@ -87,7 +98,7 @@ const DJManagement = () => {
       setDjs([...djs, data]);
       toast({
         title: "DJ creado",
-        description: "El DJ ha sido creado exitosamente.",
+        description: "El DJ ha sido creado exitosamente. Contraseña temporal: " + tempPassword,
       });
       setNewDJ({ name: "", username: "", phone_number: "" });
     } catch (error: any) {
