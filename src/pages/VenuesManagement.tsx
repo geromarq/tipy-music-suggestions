@@ -26,7 +26,7 @@ interface Venue {
 const VenuesManagement = () => {
   const [venues, setVenues] = useState<Venue[]>([]);
   const [newVenue, setNewVenue] = useState({ name: '', address: '' });
-  const [isOpen, setIsOpen] = useState(false);
+  const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -96,7 +96,7 @@ const VenuesManagement = () => {
       return;
     }
 
-    setIsOpen(false);
+    setOpen(false);
     setNewVenue({ name: '', address: '' });
     toast({
       title: "Local creado",
@@ -143,7 +143,7 @@ const VenuesManagement = () => {
         </div>
 
         <div className="flex justify-end mb-8 mt-4">
-          <Dialog open={isOpen} onOpenChange={setIsOpen}>
+          <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button className="bg-[#333333] text-white hover:bg-[#444444]">
                 <Plus className="h-4 w-4 mr-2" />
