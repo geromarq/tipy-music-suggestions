@@ -24,27 +24,29 @@ const DJManagement = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    checkAdminAccess();
-    fetchDJs();
-  }, []);
+    const init = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        navigate('/login');
+        return;
+      }
 
-  const checkAdminAccess = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      navigate('/login');
-      return;
-    }
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
 
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single();
+      if (!profile || profile.role !== 'admin') {
+        navigate('/');
+        return;
+      }
+      
+      fetchDJs();
+    };
 
-    if (!profile || profile.role !== 'admin') {
-      navigate('/');
-    }
-  };
+    init();
+  }, [navigate]);
 
   const fetchDJs = async () => {
     try {
@@ -164,7 +166,15 @@ const DJManagement = () => {
   };
 
   if (isLoading) {
-    return <div className="min-h-screen bg-[#121212] pt-20 text-white">Cargando...</div>;
+    return (
+      <div className="min-h-screen bg-[#121212] pt-20">
+        <div className="container mx-auto p-6">
+          <div className="flex justify-center items-center h-64">
+            <p className="text-white text-xl">Cargando...</p>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
