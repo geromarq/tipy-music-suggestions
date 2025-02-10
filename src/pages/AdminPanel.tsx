@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { ChartBar, Building2, CalendarDays, ListTodo, Settings, Music } from "lucide-react";
+import { ChartBar, Building2, CalendarDays, ListTodo, Settings, Users } from "lucide-react";
 
 const AdminPanel = () => {
   const navigate = useNavigate();
@@ -45,15 +45,15 @@ const AdminPanel = () => {
             </h2>
             <div className="grid gap-4 md:grid-cols-3">
               <div className="bg-[#444444] rounded-md p-4">
-                <p className="text-sm text-gray-300">Ganancias Totales</p>
+                <p className="text-sm text-gray-400">Ganancias Totales</p>
                 <p className="text-2xl font-bold text-white">$0.00</p>
               </div>
               <div className="bg-[#444444] rounded-md p-4">
-                <p className="text-sm text-gray-300">Pagos a DJs</p>
+                <p className="text-sm text-gray-400">Pagos a DJs</p>
                 <p className="text-2xl font-bold text-white">$0.00</p>
               </div>
               <div className="bg-[#444444] rounded-md p-4">
-                <p className="text-sm text-gray-300">Ganancias Admin</p>
+                <p className="text-sm text-gray-400">Ganancias Admin</p>
                 <p className="text-2xl font-bold text-white">$0.00</p>
               </div>
             </div>
@@ -81,6 +81,15 @@ const AdminPanel = () => {
           <Button
             variant="outline"
             className="h-40 flex flex-col items-center justify-center gap-4 bg-[#333333] text-white border-[#444444] hover:bg-[#444444] hover:text-white"
+            onClick={() => navigate('/admin/djs')}
+          >
+            <Users className="h-8 w-8" />
+            <span className="text-lg font-semibold">Gestionar DJs</span>
+          </Button>
+
+          <Button
+            variant="outline"
+            className="h-40 flex flex-col items-center justify-center gap-4 bg-[#333333] text-white border-[#444444] hover:bg-[#444444] hover:text-white"
             onClick={() => navigate('/admin/suggestions')}
           >
             <ListTodo className="h-8 w-8" />
@@ -94,15 +103,6 @@ const AdminPanel = () => {
           >
             <Settings className="h-8 w-8" />
             <span className="text-lg font-semibold">Configuración de Pagos</span>
-          </Button>
-
-          <Button
-            variant="outline"
-            className="h-40 flex flex-col items-center justify-center gap-4 bg-[#333333] text-white border-[#444444] hover:bg-[#444444] hover:text-white"
-            onClick={() => navigate('/admin/djs')}
-          >
-            <Music className="h-8 w-8" />
-            <span className="text-lg font-semibold">Gestionar DJs</span>
           </Button>
         </div>
       </div>
