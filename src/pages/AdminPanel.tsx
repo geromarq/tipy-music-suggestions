@@ -14,7 +14,10 @@ const AdminPanel = () => {
   useEffect(() => {
     const checkAdminAccess = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        // Check if user is authenticated
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        
+        if (authError) throw authError;
         
         if (!user) {
           console.log("No user found, redirecting to login");
@@ -22,17 +25,18 @@ const AdminPanel = () => {
           return;
         }
 
-        const { data: profile, error } = await supabase
+        // Fetch user profile with role
+        const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('role, name')
           .eq('id', user.id)
-          .single();
+          .maybeSingle();
+
+        if (profileError) throw profileError;
 
         console.log("Profile data:", profile);
-        console.log("Profile error:", error);
 
-        if (error || !profile || profile.role !== 'admin') {
-          console.error('Error fetching profile or unauthorized:', error);
+        if (!profile || profile.role !== 'admin') {
           toast({
             variant: "destructive",
             title: "Acceso denegado",
@@ -43,8 +47,13 @@ const AdminPanel = () => {
         }
 
         setUserName(profile.name || user.email || "Admin");
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error in checkAdminAccess:', error);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Ha ocurrido un error al verificar tus permisos. Por favor intenta de nuevo.",
+        });
         navigate('/login');
       }
     };
@@ -54,17 +63,20 @@ const AdminPanel = () => {
 
   const handleLogout = async () => {
     try {
-      await supabase.auth.signOut();
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
       toast({
         title: "¡Hasta pronto!",
         description: "Has cerrado sesión exitosamente.",
       });
       navigate('/login');
     } catch (error: any) {
+      console.error('Logout error:', error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message,
+        description: "Ha ocurrido un error al cerrar sesión. Por favor intenta de nuevo.",
       });
     }
   };
