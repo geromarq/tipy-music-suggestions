@@ -1,10 +1,12 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+
+import { useState, useEffect } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { ArrowLeft } from "lucide-react";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -14,25 +16,44 @@ const Login = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) throw error;
+        if (session) {
+          navigate('/');
+        }
+      } catch (error: any) {
+        console.error('Session check error:', error);
+        // Don't show error to user as this is just a check
+      }
+    };
+
+    checkSession();
+  }, [navigate]);
+
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
       if (isSignUp) {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
         });
 
         if (error) throw error;
 
-        toast({
-          title: "¡Registro exitoso!",
-          description: "Por favor verifica tu correo electrónico para continuar.",
-        });
+        if (data?.user) {
+          toast({
+            title: "¡Registro exitoso!",
+            description: "Por favor verifica tu correo electrónico para continuar.",
+          });
+        }
       } else {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
@@ -44,17 +65,20 @@ const Login = () => {
           throw error;
         }
 
-        toast({
-          title: "¡Bienvenido!",
-          description: "Has iniciado sesión exitosamente.",
-        });
-        navigate("/");
+        if (data?.user) {
+          toast({
+            title: "¡Bienvenido!",
+            description: "Has iniciado sesión exitosamente.",
+          });
+          navigate("/");
+        }
       }
     } catch (error: any) {
+      console.error('Auth error:', error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message,
+        description: error.message || "Ha ocurrido un error. Por favor intenta de nuevo.",
       });
     } finally {
       setLoading(false);
@@ -64,6 +88,12 @@ const Login = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
       <div className="w-full max-w-md p-8 space-y-6 bg-card rounded-lg shadow-lg">
+        <Link to="/">
+          <Button variant="ghost" className="mb-4">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Volver al inicio
+          </Button>
+        </Link>
         <div className="space-y-2 text-center">
           <h1 className="text-3xl font-bold">Bienvenido a Tipy</h1>
           <p className="text-muted-foreground">
