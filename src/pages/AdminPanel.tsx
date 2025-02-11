@@ -19,17 +19,19 @@ const AdminPanel = () => {
         return;
       }
 
-      const { data: profile } = await supabase
+      const { data: profile, error } = await supabase
         .from('profiles')
-        .select('role, email')
+        .select('role, name')
         .eq('id', user.id)
         .single();
 
-      if (!profile || profile.role !== 'admin') {
+      if (error || !profile || profile.role !== 'admin') {
+        console.error('Error fetching profile or unauthorized:', error);
         navigate('/');
-      } else {
-        setUserName(profile.email || user.email || "");
+        return;
       }
+
+      setUserName(profile.name || user.email || "Admin");
     };
 
     checkAdminAccess();
