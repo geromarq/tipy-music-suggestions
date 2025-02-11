@@ -13,29 +13,44 @@ const AdminPanel = () => {
 
   useEffect(() => {
     const checkAdminAccess = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (!user) {
+          console.log("No user found, redirecting to login");
+          navigate('/login');
+          return;
+        }
+
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select('role, name')
+          .eq('id', user.id)
+          .single();
+
+        console.log("Profile data:", profile);
+        console.log("Profile error:", error);
+
+        if (error || !profile || profile.role !== 'admin') {
+          console.error('Error fetching profile or unauthorized:', error);
+          toast({
+            variant: "destructive",
+            title: "Acceso denegado",
+            description: "No tienes permisos de administrador.",
+          });
+          navigate('/');
+          return;
+        }
+
+        setUserName(profile.name || user.email || "Admin");
+      } catch (error) {
+        console.error('Error in checkAdminAccess:', error);
         navigate('/login');
-        return;
       }
-
-      const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('role, name')
-        .eq('id', user.id)
-        .single();
-
-      if (error || !profile || profile.role !== 'admin') {
-        console.error('Error fetching profile or unauthorized:', error);
-        navigate('/');
-        return;
-      }
-
-      setUserName(profile.name || user.email || "Admin");
     };
 
     checkAdminAccess();
-  }, [navigate]);
+  }, [navigate, toast]);
 
   const handleLogout = async () => {
     try {
