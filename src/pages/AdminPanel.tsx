@@ -1,12 +1,15 @@
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { ChartBar, Building2, CalendarDays, ListTodo, Settings, Music } from "lucide-react";
+import { ChartBar, Building2, CalendarDays, ListTodo, Settings, Music, LogOut } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const AdminPanel = () => {
   const navigate = useNavigate();
+  const [userName, setUserName] = useState<string>("");
+  const { toast } = useToast();
 
   useEffect(() => {
     const checkAdminAccess = async () => {
@@ -18,22 +21,54 @@ const AdminPanel = () => {
 
       const { data: profile } = await supabase
         .from('profiles')
-        .select('role')
+        .select('role, email')
         .eq('id', user.id)
         .single();
 
       if (!profile || profile.role !== 'admin') {
         navigate('/');
+      } else {
+        setUserName(profile.email || user.email || "");
       }
     };
 
     checkAdminAccess();
   }, [navigate]);
 
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast({
+        title: "¡Hasta pronto!",
+        description: "Has cerrado sesión exitosamente.",
+      });
+      navigate('/login');
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message,
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#121212] pt-20">
       <div className="container mx-auto p-6">
-        <h1 className="text-4xl font-bold mb-8 text-white">Panel de Administración</h1>
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-4xl font-bold text-white">Panel de Administración</h1>
+          <div className="flex items-center gap-4">
+            <span className="text-white">{userName}</span>
+            <Button
+              variant="outline"
+              className="bg-[#333333] text-white border-[#444444] hover:bg-[#444444] hover:text-white"
+              onClick={handleLogout}
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Cerrar sesión
+            </Button>
+          </div>
+        </div>
         
         {/* Main Grid */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
