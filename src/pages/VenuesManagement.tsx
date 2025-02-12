@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -53,26 +52,58 @@ const VenuesManagement = () => {
 
   useEffect(() => {
     const checkAdminAccess = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      try {
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        
+        if (authError) {
+          console.error('Auth error:', authError);
+          navigate('/login');
+          return;
+        }
+
+        if (!user) {
+          console.log("No user found, redirecting to login");
+          navigate('/login');
+          return;
+        }
+
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        if (profileError) {
+          console.error('Profile error:', profileError);
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Error al verificar permisos de usuario.",
+          });
+          navigate('/login');
+          return;
+        }
+
+        if (!profile || profile.role !== 'admin') {
+          console.log("User is not admin:", profile);
+          toast({
+            variant: "destructive",
+            title: "Acceso denegado",
+            description: "No tienes permisos de administrador.",
+          });
+          navigate('/');
+          return;
+        }
+
+        fetchVenues();
+      } catch (error) {
+        console.error('Error in checkAdminAccess:', error);
         navigate('/login');
-        return;
-      }
-
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .single();
-
-      if (!profile || profile.role !== 'admin') {
-        navigate('/');
       }
     };
 
     checkAdminAccess();
-    fetchVenues();
-  }, [navigate]);
+  }, [navigate, toast]);
 
   const handleCreate = async () => {
     if (!newVenue.name || !newVenue.address) {
