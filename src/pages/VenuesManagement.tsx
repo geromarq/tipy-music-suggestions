@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Home, Plus, Pencil, Trash2 } from "lucide-react";
+import { Home, Plus, Pencil, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -27,8 +27,10 @@ const VenuesManagement = () => {
   const [venues, setVenues] = useState<Venue[]>([]);
   const [newVenue, setNewVenue] = useState({ name: '', address: '' });
   const [open, setOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(0);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const venuesPerPage = 8;
 
   const fetchVenues = async () => {
     const { data, error } = await supabase
@@ -128,6 +130,12 @@ const VenuesManagement = () => {
     fetchVenues();
   };
 
+  const totalPages = Math.ceil(venues.length / venuesPerPage);
+  const paginatedVenues = venues.slice(
+    currentPage * venuesPerPage,
+    (currentPage + 1) * venuesPerPage
+  );
+
   return (
     <div className="min-h-screen bg-[#121212] pt-20">
       <div className="container mx-auto p-6">
@@ -184,8 +192,8 @@ const VenuesManagement = () => {
           </Dialog>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {venues.map((venue) => (
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          {paginatedVenues.map((venue) => (
             <div
               key={venue.id}
               className="bg-[#333333] rounded-lg p-6 flex flex-col"
@@ -215,6 +223,29 @@ const VenuesManagement = () => {
             </div>
           ))}
         </div>
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="flex justify-center items-center gap-4 mt-8">
+            <Button
+              onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
+              disabled={currentPage === 0}
+              className="bg-[#333333] text-white hover:bg-[#444444]"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <span className="text-white font-medium">
+              {currentPage + 1} de {totalPages}
+            </span>
+            <Button
+              onClick={() => setCurrentPage(prev => Math.min(totalPages - 1, prev + 1))}
+              disabled={currentPage === totalPages - 1}
+              className="bg-[#333333] text-white hover:bg-[#444444]"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );
